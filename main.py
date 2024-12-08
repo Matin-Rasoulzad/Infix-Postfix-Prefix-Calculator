@@ -1,3 +1,7 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sympy import symbols, sympify, lambdify
+
 class ExpressionCalculator:
     precedence = {"(": 1, ")": 1, "^": 2, "*" : 3, "×" : 3, "/": 3, "+": 4, "-":4 ,"−": 4}
 
@@ -90,3 +94,29 @@ class ExpressionCalculator:
         if len(stack) != 1:
             raise ValueError("Invalid postfix expression")
         return stack[0]
+    
+    @classmethod
+    def string_to_function(self,input_str):
+    # Define the function using eval to compute the expression
+        def f(x):
+            return eval(input_str)
+        return f
+    @staticmethod
+    def process_and_plot(expression):
+
+        # Define the range for x
+        x = np.linspace(-10, 10, 500)
+
+        # Define the function
+        func = ExpressionCalculator.string_to_function(expression)
+        y = func(x)
+        # Create the plot
+        plt.plot(x, y, label="y = 2x²")
+        plt.title("Plot of y = 2x²")
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.axhline(0, color='black',linewidth=0.5)
+        plt.axvline(0, color='black',linewidth=0.5)
+        plt.grid(color = 'gray', linestyle = '--', linewidth = 0.5)
+        plt.legend()
+        plt.show()
