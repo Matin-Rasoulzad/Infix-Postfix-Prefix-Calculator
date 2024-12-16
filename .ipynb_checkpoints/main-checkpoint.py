@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from sympy import symbols, sympify, lambdify
 
 class ExpressionCalculator:
-    precedence = {"(": 1, ")": 1, "^": 2, "*" : 3, "×" : 3, "/": 3, "+": 4, "-":4 ,"−": 4}
+    precedence = {"^": 2, "*" : 3, "×" : 3, "/": 3, "+": 4, "-":4 ,"−": 4}
 
     @classmethod
     def infix2postfix(cls, infix):
@@ -44,22 +44,49 @@ class ExpressionCalculator:
             postfix.append(stack.pop())
 
         return ' '.join(postfix)
-
     @classmethod
     def infix2prefix(cls, infix):
-        reversed_infix = []
-        for element in reversed(infix):
-            if element == '(':
-                reversed_infix.append(')')
+        stack = []
+        prefix = []
+        
+        # Reverse the input for prefix conversion
+        infix = infix[::-1]
+        
+        for element in infix:
+            if (element[0] == "-" or element[0] == "−") and element[1:].isdigit():
+                prefix.insert(0, element)
+            
+            elif element.isalnum():
+                prefix.insert(0, element)
+            
             elif element == ')':
-                reversed_infix.append('(')
+                stack.append(element)
+            
+            elif element == '(':
+                # Pop operators until ')' is encountered
+                while stack and stack[-1] != ')':
+                    prefix.insert(0, stack.pop())
+                if not stack:
+                    raise ValueError("Mismatched parentheses in expression")
+                stack.pop()  # Remove ')' from the stack
+            
             else:
-                reversed_infix.append(element)
-
-        reversed_postfix = cls.infix2postfix(reversed_infix)
-        prefix = reversed_postfix.split()[::-1]
+                # For prefix, we compare with less than or equal
+                # Because we're processing from right to left
+                while (stack and 
+                      stack[-1] != ')' and 
+                      cls.precedence.get(element, 0) >= cls.precedence.get(stack[-1], 0)):
+                    prefix.insert(0, stack.pop())
+                stack.append(element)
+        
+        # Pop remaining operators from the stack
+        while stack:
+            operator = stack.pop()
+            if operator in ('(', ')'):
+                raise ValueError("Mismatched parentheses in expression")
+            prefix.insert(0, operator)
+        
         return ' '.join(prefix)
-    
     @staticmethod
     def evaluate_postfix(postfix):
         stack = []
@@ -111,12 +138,12 @@ class ExpressionCalculator:
         func = ExpressionCalculator.string_to_function(expression)
         y = func(x)
         # Create the plot
-        plt.plot(x, y, label="y = 2x²")
-        plt.title("Plot of y = 2x²")
+        plt.plot(x, y, label=f"{expression}",color="red")
+        plt.title(f"Plot of {expression}")
         plt.xlabel("x")
         plt.ylabel("y")
-        plt.axhline(0, color='black',linewidth=0.5)
-        plt.axvline(0, color='black',linewidth=0.5)
-        plt.grid(color = 'gray', linestyle = '--', linewidth = 0.5)
+        plt.axhline(0, color='black',linewidth=0.2)
+        plt.axvline(0, color='black',linewidth=0.2)
+        plt.grid(color = 'black', linestyle = '-', linewidth = 0.3)
         plt.legend()
         plt.show()
