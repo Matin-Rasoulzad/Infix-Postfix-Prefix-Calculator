@@ -1,16 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sympy import symbols, sympify, lambdify
+import sys
+from pathlib import Path
+
+path_to_module = Path(".ipynb_checkpoints/mino")
+sys.path.append(str(path_to_module))
+
+import coring
 
 class ExpressionCalculator:
-    precedence = {"^": 2, "*" : 3, "×" : 3, "/": 3, "+": 4, "-":4 ,"−": 4}
+    extras = True
+    precedence = {"(":1 , ")":1 , "^": 2, "*" : 3, "×" : 3, "/": 3, "+": 4, "-":4 ,"−": 4}
 
     @classmethod
     def infix2postfix(cls, infix):
         stack = []
         postfix = []
-
+        res =  coring.Infix_to_Postfix(infix)
         for element in infix:
+            if cls.extras:
+                break
             if (element[0] == "-" or element[0] == "−") and element[1:].isdigit():
                 postfix.append(element)
                 print(element[1:])
@@ -43,16 +53,16 @@ class ExpressionCalculator:
                 raise ValueError("Mismatched parentheses in expression")
             postfix.append(stack.pop())
 
-        return ' '.join(postfix)
+        return res
     @classmethod
     def infix2prefix(cls, infix):
         stack = []
         prefix = []
-        
-        # Reverse the input for prefix conversion
-        infix = infix[::-1]
-        
+
+        res1 = coring.Infix_to_Prefix(infix)
         for element in infix:
+            if cls.extras:
+                break
             if (element[0] == "-" or element[0] == "−") and element[1:].isdigit():
                 prefix.insert(0, element)
             
@@ -86,12 +96,14 @@ class ExpressionCalculator:
                 raise ValueError("Mismatched parentheses in expression")
             prefix.insert(0, operator)
         
-        return ' '.join(prefix)
-    @staticmethod
-    def evaluate_postfix(postfix):
+        return res1
+    @classmethod
+    def evaluate_postfix(cls,postfix):
         stack = []
-
+        res1 = coring.postfix_calculator(postfix)
         for element in postfix:
+            if cls.extras:
+                break
             if element.isdigit() or (element.lstrip("-").isdigit()):  # Check if it's a number
                 stack.append(int(element))
             else:
@@ -117,10 +129,7 @@ class ExpressionCalculator:
                     stack.append(a ** b)
                 else:
                     raise ValueError(f"Unknown operator: {element}")
-
-        if len(stack) != 1:
-            raise ValueError("Invalid postfix expression")
-        return stack[0]
+        return res1
     
     @classmethod
     def string_to_function(self,input_str):
@@ -147,3 +156,28 @@ class ExpressionCalculator:
         plt.grid(color = 'black', linestyle = '-', linewidth = 0.3)
         plt.legend()
         plt.show()
+
+
+calc = ExpressionCalculator()
+infix_expression = "-2 * ( 3 - 1 + 5 ^ 2 )"
+try:
+    postfix_expression = calc.infix2postfix(infix_expression)
+    print("Postfix:", postfix_expression)
+except ValueError as e:
+    print("Error:", e)
+
+
+calc = ExpressionCalculator()
+infix_expression = "-2 * ( 3 - 1 + 5 ^ 2 )"
+try:
+    prefix_expression = calc.infix2prefix(infix_expression)
+    print("Prefix:", prefix_expression)
+except ValueError as e:
+    print("Error:", e)
+
+calc = ExpressionCalculator()
+postfix_expression = "3 1 + 1 3 - *"
+try:
+    print("Result:", calc.evaluate_postfix(postfix_expression))
+except ValueError as e:
+    print("Error:", e)
